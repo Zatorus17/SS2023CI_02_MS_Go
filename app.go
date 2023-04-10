@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 type App struct {
@@ -148,8 +149,38 @@ func (a *App) deleteProduct(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, map[string]string{"result": "success"})
 }
 
+func (a *App) getProductsBelowPrice(w http.ResponseWriter, r *http.Request) {
+	price, err := strconv.ParseFloat(r.FormValue("price"), 64)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid price value")
+		return
+	}
+
+	products, err := getProductsBelowPrice(a.DB, price)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, products)
+}
+
+func (a *App) getProductsByName(w http.ResponseWriter, r *http.Request) {
+	name := strings.ToLower(r.FormValue("name"))
+
+	products, err := getProductsByName(a.DB, name)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, products)
+}
+
 func (a *App) initializeRoutes() {
 	a.Router.HandleFunc("/products", a.getProducts).Methods("GET")
+	a.Router.HandleFunc("/products/name", a.getProductsByName).Methods("GET")
+	a.Router.HandleFunc("/products/price", a.getProductsBelowPrice).Methods("GET")
 	a.Router.HandleFunc("/product", a.createProduct).Methods("POST")
 	a.Router.HandleFunc("/product/{id:[0-9]+}", a.getProduct).Methods("GET")
 	a.Router.HandleFunc("/product/{id:[0-9]+}", a.updateProduct).Methods("PUT")

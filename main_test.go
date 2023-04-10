@@ -3,6 +3,7 @@ package SS2023CI_02_MS_Go
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -130,7 +131,7 @@ func addProducts(count int) {
 	}
 
 	for i := 0; i < count; i++ {
-		a.DB.Exec("INSERT INTO products(name, price) VALUES($1, $2)", "Product "+strconv.Itoa(i), (i+1.0)*10)
+		a.DB.Exec("INSERT INTO products(name, price) VALUES($1, $2)", "Product"+strconv.Itoa(i), (i+1.0)*10)
 	}
 }
 
@@ -184,4 +185,53 @@ func TestDeleteProduct(t *testing.T) {
 	req, _ = http.NewRequest("GET", "/product/1", nil)
 	response = executeRequest(req)
 	checkResponseCode(t, http.StatusNotFound, response.Code)
+}
+
+func TestGetProductsByName(t *testing.T) {
+	clearTable()
+	addProducts(3)
+
+	req, _ := http.NewRequest("GET", "/products/name?name=Product2", nil)
+	response := executeRequest(req)
+	checkResponseCode(t, http.StatusOK, response.Code)
+
+	var originalProducts []map[string]interface{}
+	json.Unmarshal(response.Body.Bytes(), &originalProducts)
+
+	if len(originalProducts) != 1 {
+		t.Errorf("Expected 1 products, got %v", len(originalProducts))
+	}
+
+	if originalProducts[0]["name"] != "Product2" {
+		t.Errorf("Expected product name to be 'product2'. Got '%v'", originalProducts[0]["name"])
+	}
+}
+
+func TestGetProductsUnderPrice(t *testing.T) {
+	clearTable()
+	addProducts(4)
+
+	var testedPrice = 25.0
+
+	req, _ := http.NewRequest("GET", "/products/price?price=25.00", nil)
+	response := executeRequest(req)
+	checkResponseCode(t, http.StatusOK, response.Code)
+
+	var originalProducts []map[string]interface{}
+	json.Unmarshal(response.Body.Bytes(), &originalProducts)
+
+	if len(originalProducts) != 2 {
+		t.Errorf("Expected 2 products, got %v", len(originalProducts))
+	}
+
+	for i := 0; i < len(originalProducts); i++ {
+		price, err := strconv.ParseFloat(fmt.Sprintf("%v", originalProducts[i]["price"]), 64)
+		if err != nil {
+			// handle error
+		}
+
+		if price > testedPrice {
+			t.Errorf("Expected products' prices to be under 25.00")
+		}
+	}
 }
