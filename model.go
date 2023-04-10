@@ -66,7 +66,7 @@ func getProducts(db *sql.DB, start, count int) ([]product, error) {
 }
 
 func getProductsBelowPrice(db *sql.DB, price float64) ([]product, error) {
-	rows, err := db.Query("SELECT id, name, price FROM products WHERE price < $1", price)
+	rows, err := db.Query("SELECT id, name, price FROM products WHERE price < $1 ORDER BY price", price)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +86,7 @@ func getProductsBelowPrice(db *sql.DB, price float64) ([]product, error) {
 }
 
 func getProductsByName(db *sql.DB, name string) ([]product, error) {
-	rows, err := db.Query("SELECT id, name, price FROM products WHERE LOWER(name) LIKE LOWER($1 || '%') ORDER BY id", name)
+	rows, err := db.Query("SELECT id, name, price FROM products WHERE LOWER(name) LIKE LOWER($1 || '%') ORDER BY name", name)
 	if err != nil {
 		return nil, err
 	}

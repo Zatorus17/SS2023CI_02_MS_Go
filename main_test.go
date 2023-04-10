@@ -207,7 +207,7 @@ func TestGetProductsByName(t *testing.T) {
 	}
 }
 
-func TestGetProductsUnderPrice(t *testing.T) {
+func TestGetProductsBelowPrice(t *testing.T) {
 	clearTable()
 	addProducts(4)
 
