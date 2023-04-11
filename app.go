@@ -12,6 +12,8 @@ import (
 	"strings"
 )
 
+const PRODCT_ID_REGEX = "{id:[0-9]+}"
+
 type App struct {
 	Router *mux.Router
 	DB     *sql.DB
@@ -182,7 +184,7 @@ func (a *App) initializeRoutes() {
 	a.Router.HandleFunc("/products/name", a.getProductsByName).Methods("GET")
 	a.Router.HandleFunc("/products/price", a.getProductsBelowPrice).Methods("GET")
 	a.Router.HandleFunc("/product", a.createProduct).Methods("POST")
-	a.Router.HandleFunc("/product/{id:[0-9]+}", a.getProduct).Methods("GET")
-	a.Router.HandleFunc("/product/{id:[0-9]+}", a.updateProduct).Methods("PUT")
-	a.Router.HandleFunc("/product/{id:[0-9]+}", a.deleteProduct).Methods("DELETE")
+	a.Router.HandleFunc("/product/"+PRODCT_ID_REGEX, a.getProduct).Methods("GET")
+	a.Router.HandleFunc("/product/"+PRODCT_ID_REGEX, a.updateProduct).Methods("PUT")
+	a.Router.HandleFunc("/product/"+PRODCT_ID_REGEX, a.deleteProduct).Methods("DELETE")
 }
